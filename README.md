@@ -1,5 +1,7 @@
-Celery
-======
+ActiveCelery
+============
+
+This is a fork of [Celery](https://github.com/eggplantbren/Celery).
 
 [DNest4](https://github.com/eggplantbren/DNest4) +
 [Celerite](https://github.com/dfm/celerite) = *Celery*.
@@ -84,4 +86,3 @@ search for. The computational expense scales as the square of this maximum,
 but it is recommended that you increase it (to 200, as a suggestion) in
 serious research applications. To do this, edit the value in MyModel.h and
 recompile by running `make`. Sorry it's hard coded at this point.
-
