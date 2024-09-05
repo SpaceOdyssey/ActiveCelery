@@ -40,4 +40,3 @@ class Data
 } // namespace
 
 #endif
-

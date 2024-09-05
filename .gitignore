@@ -3,9 +3,11 @@ code/__pycache__
 code/*.txt
 code/Celery
 code/logfile
+code/*.pdf
 code/posterior_sample.yaml
+Code/Makefile
 doc/*.aux
 doc/*.toc
 doc/*.pdf
 doc/*.log
-
+**.DS_Store

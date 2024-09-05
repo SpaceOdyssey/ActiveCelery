@@ -3,6 +3,7 @@
 #include "DNest4/code/DNest4.h"
 #include <iomanip>
 #include <sstream>
+#include <Eigen/Dense>
 
 namespace Celery
 {
@@ -15,18 +16,26 @@ MyModel::MyModel()
        DNest4::PriorType::log_uniform)  // Prior on N
 {
 
+    // Noise model.
+    prior_sigma = DNest4::TruncatedCauchy(0.0, 1.0, 1E-6);
 }
 
 void MyModel::from_prior(DNest4::RNG& rng)
 {
+    sigma = prior_sigma.generate(rng);
     modes.from_prior(rng);
 }
 
 double MyModel::perturb(DNest4::RNG& rng)
 {
     double logH = 0.0;
+    double rnd = rng.rand();
 
-    logH += modes.perturb(rng);
+    if (rnd < 0.9) {
+        logH += modes.perturb(rng);
+    } else {
+        logH += prior_sigma.perturb(sigma, rng);
+    }
 
     return logH;
 }
@@ -98,10 +107,11 @@ double MyModel::log_likelihood() const
 
     try
     {
+        Eigen::VectorXd var = Eigen::VectorXd::Constant(data.get_y().size(), sigma*sigma);
         solver.compute(0.0,
                        alpha_real, beta_real,
                        a, b, c, d,
-                       data.get_tt(), data.get_var());
+                       data.get_tt(), var);
     }
     catch(...)
     {
@@ -119,6 +129,8 @@ void MyModel::print(std::ostream& out) const
 {
     out << std::setprecision(12);
     modes.print(out);
+
+    out << sigma;
 }
 
 std::string MyModel::description() const
@@ -138,8 +150,9 @@ std::string MyModel::description() const
     for(size_t i=0; i<max_num_modes; ++i)
         s << "quality[" << i << "], ";
 
+    s << "sigma";
+
     return s.str();
 }
 
 } // namespace Celery
-

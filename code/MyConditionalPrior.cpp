@@ -132,4 +132,3 @@ void MyConditionalPrior::print(std::ostream& out) const
 }
 
 } // namespace Celery
-

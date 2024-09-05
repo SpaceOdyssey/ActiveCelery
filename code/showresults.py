@@ -25,48 +25,53 @@ all_periods = all_periods[all_periods != 0.0]
 
 # Extract quality factors
 start = indices["quality[0]"]
-all_qualities = posterior_sample[:, start:].flatten()
+all_qualities = posterior_sample[:, start:-1].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
 # Histogram of inferred log-periods
+plt.figure()
 plt.hist(np.log10(all_periods), 1000, alpha=0.3)
 plt.xlabel(r"$\log_{10}$(period)")
 plt.ylabel("Relative probability")
-plt.show()
+plt.savefig("relative_probability.pdf")
 
 # Histogram of inferred periods, weighted by amplitude
+plt.figure()
 plt.hist(np.log10(all_periods), bins=1000,
          weights=all_amplitudes, alpha=0.3)
 plt.xlabel(r"$\log_{10}$(period)")
 plt.ylabel("Relative expected amplitude")
-plt.show()
+plt.savefig("relative_expected_amplitude.pdf")
 
 # Plot period vs. amplitude
+plt.figure()
 plt.loglog(all_periods,
            all_amplitudes,
            ".", alpha=0.2)
 plt.xlabel("Period")
 plt.ylabel("Amplitude")
-plt.show()
-
+plt.savefig("period_amplitude.pdf")
 
 # Plot period vs. quality factor
+plt.figure()
 plt.loglog(all_periods,
            all_qualities,
            ".", alpha=0.2)
 plt.xlabel("Period")
 plt.ylabel("Quality factor")
-plt.show()
+plt.savefig("quality_factor.pdf")
 
 # Histogram of number of modes
 width = 0.7
 bins = np.arange(0, posterior_sample[0, indices["max_num_components"]]+1)\
         - 0.5*width
+plt.figure()
 plt.hist(posterior_sample[:, indices["num_components"]],
          bins,
          width=width,
          alpha=0.3,
          density=True)
 plt.xlabel("num_components")
-plt.show()
-
+plt.xticks([i for i in range(1, 1, 2)])
+plt.xlim((1, 30))
+plt.savefig("num_components.pdf")

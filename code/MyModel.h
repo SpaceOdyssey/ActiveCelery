@@ -19,6 +19,9 @@ class MyModel
         // The modes
         DNest4::RJObject<MyConditionalPrior> modes;
 
+        // Noise model
+        double sigma;
+        DNest4::TruncatedCauchy prior_sigma;
 
     public:
         // Constructor only gives size of params
@@ -43,4 +46,3 @@ class MyModel
 } // namespace Celery
 
 #endif
-
