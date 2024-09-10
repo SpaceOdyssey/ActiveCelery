@@ -10,10 +10,10 @@ indices = dn4.load_column_names("sample.txt")["indices"]
 # print("Converting posterior samples to YAML for extra convenience.")
 # from to_yaml import posterior_sample, indices, to_yaml
 
-# Extract component hyperparameters.
-hp_keys = ['mu_log_quality', 'sig_log_quality']
-all_hp_keys = [indices[k] for k in hp_keys]
-all_hps = sample[:, all_hp_keys]
+# # Extract component hyperparameters.
+# hp_keys = ['mu_log_quality', 'sig_log_quality']
+# all_hp_keys = [indices[k] for k in hp_keys]
+# all_hps = sample[:, all_hp_keys]
 
 # Extract amplitudes
 start = indices["amplitude[0]"]
@@ -32,14 +32,14 @@ start = indices["quality[0]"]
 all_qualities = sample[:, start:-1].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
-# Pairplot for component hyperparameters.
-all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
-# all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
-# all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
-# all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
-# all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
-sns.pairplot(all_hps_df)
-plt.savefig('hyperparameters.pdf')
+# # Pairplot for component hyperparameters.
+# all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
+# # all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
+# # all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
+# # all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
+# # all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
+# sns.pairplot(all_hps_df)
+# plt.savefig('hyperparameters.pdf')
 
 # Histogram of inferred log-periods
 plt.figure()

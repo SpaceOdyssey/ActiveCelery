@@ -138,7 +138,7 @@ std::string MyModel::description() const
     std::stringstream s;
 
     s << "num_dimensions, max_num_components, ";
-    s << "mu_log_quality, sig_log_quality, ";
+    // s << "mu_log_quality, sig_log_quality, ";
     s << "num_components, ";
 
     for(size_t i=0; i<max_num_modes; ++i)

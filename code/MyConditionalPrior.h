@@ -10,18 +10,18 @@ namespace Celery
 class MyConditionalPrior:public DNest4::ConditionalPrior
 {
     private:
-        // Hyperpriors on quality factor.
-        DNest4::Uniform prior_mu_log_quality;
-        DNest4::Uniform prior_sig_log_quality;
+        // // Hyperpriors on quality factor.
+        // DNest4::Uniform prior_mu_log_quality;
+        // DNest4::Uniform prior_sig_log_quality;
 
         // Component priors.
         DNest4::Gaussian prior_log_amplitude;
         DNest4::Uniform prior_period;
-        DNest4::Gaussian prior_log_quality;
+        DNest4::TruncatedCauchy prior_quality;
 
-        // Hyperparameters
-        double mu_log_quality;
-        double sig_log_quality;
+        // // Hyperparameters
+        // double mu_log_quality;
+        // double sig_log_quality;
 
         double perturb_hyperparameters(DNest4::RNG& rng);
 

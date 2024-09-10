@@ -1,6 +1,8 @@
 import dnest4.classic as dn4
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+import seaborn as sns
 
 print("Generating DNest4 plots. Close these to continue.")
 
@@ -28,56 +30,49 @@ start = indices["quality[0]"]
 all_qualities = posterior_sample[:, start:-1].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
+# Extract component hyperparameters.
+hp_keys = ['mu_log_quality', 'sig_log_quality']
+all_hp_keys = [indices[k] for k in hp_keys]
+all_hps = posterior_sample[:, all_hp_keys]
+
+# Pairplot for component hyperparameters.
+all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
+# all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
+# all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
+# all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
+# all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
+sns.pairplot(all_hps_df)
+plt.savefig('hyperparameters.pdf')
+
 # Histogram of inferred log-periods
 plt.figure()
-plt.hist(np.log10(all_periods), 1000, alpha=0.3)
-plt.xlabel(r"$\log_{10}$(period)")
+plt.hist(all_periods, 100, alpha=0.3)
+plt.xlabel(r"Period (days)")
 plt.ylabel("Relative probability")
 plt.savefig("relative_probability.pdf")
 
 # Histogram of inferred periods, weighted by amplitude
 plt.figure()
-plt.hist(np.log10(all_periods), bins=1000,
+plt.hist(all_periods, bins=1000,
          weights=all_amplitudes, alpha=0.3)
-plt.xlabel(r"$\log_{10}$(period/day)")
+plt.xlabel(r"Period (days)")
 plt.ylabel("Relative expected amplitude")
 plt.savefig("relative_expected_amplitude.pdf")
 
-# Histogram of inferred periods, weighted by amplitude. In linear space.
-plt.figure()
-plt.hist(all_periods, bins=1000,
-         weights=all_amplitudes, range = (0.0, 3.0), alpha=0.3)
-plt.xlim((0.0, 3.0))
-plt.xlabel(r"period (days)")
-plt.ylabel("Relative expected amplitude")
-plt.savefig("relative_expected_amplitude_linear.pdf")
-
 # Plot period vs. amplitude
 plt.figure()
-plt.loglog(all_periods,
-           all_amplitudes,
-           ".", alpha=0.2)
-plt.xlabel("Period")
-plt.ylabel("Amplitude")
-plt.savefig("period_amplitude.pdf")
-
-# Plot period vs. amplitude in linear space.
-plt.figure()
-plt.plot(all_periods,
-           all_amplitudes,
-           ".", alpha=0.2)
-plt.xlabel("Period")
+plt.plot(all_periods, all_amplitudes, ".", alpha=0.2)
+plt.xlabel("Period (days)")
 plt.ylabel("Amplitude")
 plt.yscale('log')
-plt.savefig("period_amplitude_linear.pdf")
+plt.savefig("period_amplitude.pdf")
 
 # Plot period vs. quality factor
 plt.figure()
-plt.loglog(all_periods,
-           all_qualities,
-           ".", alpha=0.2)
+plt.plot(all_periods, all_qualities, ".", alpha=0.2)
 plt.xlabel("Period")
 plt.ylabel("Quality factor")
+plt.yscale('log')
 plt.savefig("quality_factor.pdf")
 
 # Histogram of number of modes
