@@ -14,9 +14,9 @@ MyConditionalPrior::MyConditionalPrior()
     // prior_sig_log_quality = DNest4::Uniform(0.0, 1.0);
 
     // Component priors.
-    prior_log_amplitude = DNest4::Gaussian(0.0, 1.0);
+    prior_log_amplitude = DNest4::Gaussian(0.0, 2.5);
     prior_period = DNest4::Uniform(1/24.0, 2.0);
-    prior_quality = DNest4::TruncatedCauchy(0.0, 10, 1E-6);
+    prior_quality = DNest4::TruncatedCauchy(0.0, 100, 1E-6);
 }
 
 void MyConditionalPrior::from_prior(DNest4::RNG& rng)
