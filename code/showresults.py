@@ -30,19 +30,19 @@ start = indices["quality[0]"]
 all_qualities = posterior_sample[:, start:-1].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
-# Extract component hyperparameters.
-hp_keys = ['mu_log_quality', 'sig_log_quality']
-all_hp_keys = [indices[k] for k in hp_keys]
-all_hps = posterior_sample[:, all_hp_keys]
+# # Extract component hyperparameters.
+# hp_keys = ['mu_log_quality', 'sig_log_quality']
+# all_hp_keys = [indices[k] for k in hp_keys]
+# all_hps = posterior_sample[:, all_hp_keys]
 
-# Pairplot for component hyperparameters.
-all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
-# all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
-# all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
-# all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
-# all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
-sns.pairplot(all_hps_df)
-plt.savefig('hyperparameters.pdf')
+# # Pairplot for component hyperparameters.
+# all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
+# # all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
+# # all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
+# # all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
+# # all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
+# sns.pairplot(all_hps_df)
+# plt.savefig('hyperparameters.pdf')
 
 # Histogram of inferred log-periods
 plt.figure()
@@ -89,3 +89,21 @@ plt.xlabel("num_components")
 plt.xticks([i for i in range(0, 21, 2)])
 plt.xlim((0, 20))
 plt.savefig("num_components.pdf")
+
+# Histogram of high quality (Q > 1) modes
+start = indices["quality[0]"]
+all_qualities = posterior_sample[:, start:-1]
+n_quality_components = np.sum(all_qualities > 1, axis = 1)
+width = 0.7
+bins = np.arange(0, posterior_sample[0, indices["max_num_components"]]+1)\
+        - 0.5*width
+plt.figure()
+plt.hist(n_quality_components,
+         bins,
+         width=width,
+         alpha=0.3,
+         density=True)
+plt.xlabel("Number of Quality Components")
+plt.xticks([i for i in range(0, 21, 2)])
+plt.xlim((0, 20))
+plt.savefig("num_quality_components.pdf")

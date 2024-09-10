@@ -86,3 +86,21 @@ plt.xlabel("num_components")
 plt.xticks([i for i in range(0, 21, 2)])
 plt.xlim((0, 20))
 plt.savefig("num_components.pdf")
+
+# Histogram of high quality (Q > 1) modes
+start = indices["quality[0]"]
+all_qualities = sample[:, start:-1]
+n_quality_components = np.sum(all_qualities > 1, axis = 1)
+width = 0.7
+bins = np.arange(0, sample[0, indices["max_num_components"]]+1)\
+        - 0.5*width
+plt.figure()
+plt.hist(n_quality_components,
+         bins,
+         width=width,
+         alpha=0.3,
+         density=True)
+plt.xlabel("num_components")
+plt.xticks([i for i in range(0, 21, 2)])
+plt.xlim((0, 20))
+plt.savefig("num_quality_components.pdf")
