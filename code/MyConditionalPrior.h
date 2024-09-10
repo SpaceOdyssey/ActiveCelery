@@ -10,21 +10,17 @@ namespace Celery
 class MyConditionalPrior:public DNest4::ConditionalPrior
 {
     private:
-        // A cauchy distribution
-        DNest4::Cauchy cauchy;
+        // Hyperpriors on quality factor.
+        DNest4::Uniform prior_mu_log_quality;
+        DNest4::Uniform prior_sig_log_quality;
 
-        // A standard normal distribution
-        DNest4::Gaussian normal;
+        // Component priors.
+        DNest4::Gaussian prior_log_amplitude;
+        DNest4::Uniform prior_period;
+        DNest4::Gaussian prior_log_quality;
 
-        // Scale parameter for amplitudes.
-        double scale_amplitude;
-
-        // Median period
-        double mu_period;
-        double sig_log_period;
-
-        // Median quality factor
-        double mu_quality;
+        // Hyperparameters
+        double mu_log_quality;
         double sig_log_quality;
 
         double perturb_hyperparameters(DNest4::RNG& rng);
@@ -39,7 +35,7 @@ class MyConditionalPrior:public DNest4::ConditionalPrior
         void to_uniform(std::vector<double>& vec) const;
 
         // A getter for one of the hyperparameters
-        double get_scale_amplitude() const { return scale_amplitude; }
+        // double get_scale_amplitude() const { return scale_amplitude; }
 
         void print(std::ostream& out) const;
 };
@@ -47,4 +43,3 @@ class MyConditionalPrior:public DNest4::ConditionalPrior
 } // namespace Celery
 
 #endif
-

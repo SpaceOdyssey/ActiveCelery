@@ -39,9 +39,18 @@ plt.savefig("relative_probability.pdf")
 plt.figure()
 plt.hist(np.log10(all_periods), bins=1000,
          weights=all_amplitudes, alpha=0.3)
-plt.xlabel(r"$\log_{10}$(period)")
+plt.xlabel(r"$\log_{10}$(period/day)")
 plt.ylabel("Relative expected amplitude")
 plt.savefig("relative_expected_amplitude.pdf")
+
+# Histogram of inferred periods, weighted by amplitude. In linear space.
+plt.figure()
+plt.hist(all_periods, bins=1000,
+         weights=all_amplitudes, range = (0.0, 3.0), alpha=0.3)
+plt.xlim((0.0, 3.0))
+plt.xlabel(r"period (days)")
+plt.ylabel("Relative expected amplitude")
+plt.savefig("relative_expected_amplitude_linear.pdf")
 
 # Plot period vs. amplitude
 plt.figure()
@@ -51,6 +60,16 @@ plt.loglog(all_periods,
 plt.xlabel("Period")
 plt.ylabel("Amplitude")
 plt.savefig("period_amplitude.pdf")
+
+# Plot period vs. amplitude in linear space.
+plt.figure()
+plt.plot(all_periods,
+           all_amplitudes,
+           ".", alpha=0.2)
+plt.xlabel("Period")
+plt.ylabel("Amplitude")
+plt.yscale('log')
+plt.savefig("period_amplitude_linear.pdf")
 
 # Plot period vs. quality factor
 plt.figure()
@@ -72,6 +91,6 @@ plt.hist(posterior_sample[:, indices["num_components"]],
          alpha=0.3,
          density=True)
 plt.xlabel("num_components")
-plt.xticks([i for i in range(1, 1, 2)])
-plt.xlim((1, 30))
+plt.xticks([i for i in range(0, 21, 2)])
+plt.xlim((0, 20))
 plt.savefig("num_components.pdf")
