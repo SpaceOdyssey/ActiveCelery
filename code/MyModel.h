@@ -12,9 +12,18 @@ namespace Celery
 class MyModel
 {
     private:
-
         // Maximum number of modes
         static constexpr size_t max_num_modes = 20;
+
+        // Circadian component
+        double log_amplitude_circ;
+        DNest4::Gaussian prior_log_amplitude_circ;
+
+        double period_circ;
+        DNest4::Gaussian prior_period_circ;
+
+        double quality_circ;
+        DNest4::TruncatedCauchy prior_quality_circ;
 
         // The modes
         DNest4::RJObject<MyConditionalPrior> modes;

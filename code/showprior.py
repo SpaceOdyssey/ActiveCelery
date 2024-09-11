@@ -29,8 +29,20 @@ all_periods = all_periods[all_periods != 0.0]
 
 # Extract quality factors
 start = indices["quality[0]"]
-all_qualities = sample[:, start:-1].flatten()
+all_qualities = sample[:, start:-4].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
+
+# Extract circadian component.
+start = indices["amplitude[circ]"]
+all_circ = sample[:, start:-1]
+
+# Plot circadian component.
+circ_keys = ["amplitude", "period", "quality"]
+all_circ_df = pd.DataFrame(all_circ, columns = circ_keys)
+all_circ_df["amplitude"] = np.log10(all_circ_df["amplitude"])
+all_circ_df["quality"] = np.log10(all_circ_df["quality"])
+sns.pairplot(all_circ_df)
+plt.savefig('circadian_params.pdf')
 
 # # Pairplot for component hyperparameters.
 # all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
