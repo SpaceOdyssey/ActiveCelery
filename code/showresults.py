@@ -27,22 +27,20 @@ all_periods = all_periods[all_periods != 0.0]
 
 # Extract quality factors
 start = indices["quality[0]"]
-all_qualities = posterior_sample[:, start:-1].flatten()
+all_qualities = posterior_sample[:, start:-4].flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
-# # Extract component hyperparameters.
-# hp_keys = ['mu_log_quality', 'sig_log_quality']
-# all_hp_keys = [indices[k] for k in hp_keys]
-# all_hps = posterior_sample[:, all_hp_keys]
+# Extract circadian component.
+start = indices["amplitude[circ]"]
+all_circ = posterior_sample[:, start:-1]
 
-# # Pairplot for component hyperparameters.
-# all_hps_df = pd.DataFrame(all_hps, columns = hp_keys)
-# # all_hps_df['log_mu_period'] = np.log(all_hps_df['mu_period'])
-# # all_hps_df['mu_log_quality'] = np.log(all_hps_df['mu_quality'])
-# # all_hps_df['log_scale_amplitude'] = np.log(all_hps_df['scale_amplitude'])
-# # all_hps_df = all_hps_df.drop(columns = ['mu_period', 'mu_quality', 'scale_amplitude'])
-# sns.pairplot(all_hps_df)
-# plt.savefig('hyperparameters.pdf')
+# Plot circadian component.
+circ_keys = ["amplitude", "period", "quality"]
+all_circ_df = pd.DataFrame(all_circ, columns = circ_keys)
+all_circ_df["amplitude"] = np.log10(all_circ_df["amplitude"])
+all_circ_df["quality"] = np.log10(all_circ_df["quality"])
+sns.pairplot(all_circ_df)
+plt.savefig('circadian_params.pdf')
 
 # Histogram of inferred log-periods
 plt.figure()

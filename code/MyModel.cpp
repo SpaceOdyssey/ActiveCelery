@@ -98,8 +98,8 @@ double MyModel::log_likelihood() const
     d(0) = c(0) * Qterm;
 
     // Additional terms.
-    size_t j=0;
-    for(size_t i=1; i<components.size(); ++i) {
+    size_t j=1;
+    for(size_t i=0; i<components.size(); ++i) {
         A2 = pow(components[i][0], 2);
         omega0 = 2.0*M_PI/components[i][1];
         Q = components[i][2];
