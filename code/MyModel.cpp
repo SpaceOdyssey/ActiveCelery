@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <sstream>
 #include <Eigen/Dense>
+#include <algorithm>
 
 namespace Celery {
 
@@ -150,6 +151,27 @@ double MyModel::log_likelihood() const
         return -1E300;
     }
 
+    // Improve identifiability by not allowing multiple high quality components
+    // to have periods spaced less than 1 hour.
+    std::vector<double> q_amps;
+    for(size_t i=0; i<components.size(); ++i) {
+        if (components[i][2] > 1.0)
+            q_amps.push_back(components[i][1]);
+    }
+    std::sort(q_amps.begin(), q_amps.end());
+
+    if (q_amps.size() > 1) {
+        std::vector<double> q_amps_diff(q_amps.size());
+        for (size_t i=0; i<q_amps_diff.size(); ++i)
+            q_amps_diff[i] = q_amps[i+1] - q_amps[i];
+
+        auto min_el = std::min_element(q_amps_diff.begin(), q_amps_diff.end());
+
+        if (*min_el < 1.0/24.0)
+            return -1E300;
+    }
+
+    // Calculate likelihood.
     logL += -0.5*log(2*M_PI)*data.get_y().size();
     logL += -0.5*solver.log_determinant();
     logL += -0.5*solver.dot_solve(Data::get_instance().get_yy());

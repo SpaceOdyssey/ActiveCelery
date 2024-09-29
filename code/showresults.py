@@ -90,7 +90,7 @@ plt.savefig("num_components.pdf")
 
 # Histogram of high quality (Q > 1) modes
 start = indices["quality[0]"]
-all_qualities = posterior_sample[:, start:-1]
+all_qualities = posterior_sample[:, start:-4]
 n_quality_components = np.sum(all_qualities > 1, axis = 1)
 width = 0.7
 bins = np.arange(0, posterior_sample[0, indices["max_num_components"]]+1)\
@@ -101,7 +101,7 @@ plt.hist(n_quality_components,
          width=width,
          alpha=0.3,
          density=True)
-plt.xlabel("Number of Quality Components")
+plt.xlabel("Number of Ultradian Cycles")
 plt.xticks([i for i in range(0, 21, 2)])
 plt.xlim((0, 20))
 plt.savefig("num_quality_components.pdf")
