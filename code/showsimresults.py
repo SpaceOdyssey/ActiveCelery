@@ -9,6 +9,10 @@ import statistics
 
 print("Generating DNest4 plots. Close these to continue.")
 
+# Inputs
+inputs = pd.read_csv("inputs.csv", index_col=0, header=None).T
+component_inputs = pd.read_csv("component_inputs.csv", index_col=0, header=None).T
+
 # Run postprocess from DNest4
 dn4.postprocess()
 
@@ -20,19 +24,28 @@ to_yaml()
 start = indices["amplitude[0]"]
 end   = indices["period[0]"]
 y_sd = posterior_sample[1, indices["y_sd"]]
-all_amplitudes = y_sd*posterior_sample[:, start:end].flatten()
+ultradian_amplitudes = y_sd*posterior_sample[:, start:end]
+circ_amplitudes = y_sd*posterior_sample[:, indices["amplitude[circ]"]]
+all_amplitudes = np.concatenate([ultradian_amplitudes, circ_amplitudes[:, np.newaxis]],
+                                axis = 1).flatten()
 all_amplitudes = all_amplitudes[all_amplitudes != 0.0]
 
 # Periods
 start = indices["period[0]"]
 end   = indices["quality[0]"]
-all_periods = posterior_sample[:, start:end].flatten()
+ultradian_periods = posterior_sample[:, start:end]
+circ_periods = posterior_sample[:, indices["period[circ]"]]
+all_periods = np.concatenate([ultradian_periods, circ_periods[:, np.newaxis]],
+                                axis = 1).flatten()
 all_periods = all_periods[all_periods != 0.0]
 
 # Extract quality factors
 start = indices["quality[0]"]
 end = indices["amplitude[circ]"]
-all_qualities = y_sd*posterior_sample[:, start:end].flatten()
+ultradian_qualities = posterior_sample[:, start:end]
+circ_qualities = posterior_sample[:, indices["quality[circ]"]]
+all_qualities = np.concatenate([ultradian_qualities, circ_qualities[:, np.newaxis]],
+                                axis = 1).flatten()
 all_qualities = all_qualities[all_qualities != 0.0]
 
 # Extract circadian component.
@@ -50,17 +63,21 @@ plt.savefig('circadian_params.pdf')
 
 # Histogram of inferred log-periods
 plt.figure()
-plt.hist(all_periods, 30)
-plt.xlim(0.0, 1.0)
+plt.hist(all_periods, 100, alpha=0.5)
+plt.vlines(component_inputs["period"], 0.0, plt.gca().get_ylim()[1],
+           linestyles = "dashed", colors = 'k')
+plt.xlim(0.0, 1.3)
 plt.xlabel(r"Period (days)")
 plt.ylabel("Relative probability")
 plt.savefig("relative_probability.pdf")
 
 # Histogram of inferred periods, weighted by amplitude
 plt.figure()
-plt.hist(all_periods, bins=30,
-         weights=all_amplitudes)
-plt.xlim(0.0, 1.0)
+plt.hist(all_periods, bins=100,
+         weights=all_amplitudes, alpha=0.3)
+plt.vlines(component_inputs["period"], 0.0, plt.gca().get_ylim()[1],
+           linestyles = "dashed", colors = 'k')
+plt.xlim(0.0, 1.3)
 plt.xlabel(r"Period (days)")
 plt.ylabel("Relative expected amplitude")
 plt.savefig("relative_expected_amplitude.pdf")
@@ -68,7 +85,8 @@ plt.savefig("relative_expected_amplitude.pdf")
 # Plot period vs. amplitude
 plt.figure()
 plt.plot(all_periods, all_amplitudes, ".", alpha=0.2)
-plt.xlim(0.0, 1.0)
+plt.plot(component_inputs["period"], component_inputs["amplitude"], "*")
+plt.xlim(0.0, 1.3)
 plt.xlabel("Period (days)")
 plt.ylabel("Amplitude")
 plt.yscale('log')
@@ -77,7 +95,8 @@ plt.savefig("period_amplitude.pdf")
 # Plot period vs. quality factor
 plt.figure()
 plt.plot(all_periods, all_qualities, ".", alpha=0.2)
-plt.xlim(0.0, 1.0)
+plt.plot(component_inputs["period"], component_inputs["quality"], "*")
+plt.xlim(0.0, 1.3)
 plt.xlabel("Period")
 plt.ylabel("Quality factor")
 plt.yscale('log')
@@ -92,6 +111,8 @@ plt.hist(posterior_sample[:, indices["num_components"]],
          width=width,
          alpha=0.3,
          density=True)
+plt.vlines(component_inputs.shape[0] - 1, 0.0, plt.gca().get_ylim()[1],
+           linestyles = "dashed", colors = 'k')
 plt.xlabel("num_components")
 plt.xticks([i for i in range(0, 21, 2)])
 plt.xlim((0, 20))
@@ -110,6 +131,8 @@ plt.hist(n_quality_components,
          width=width,
          alpha=0.3,
          density=True)
+plt.vlines(component_inputs.shape[0] - 1, 0.0, plt.gca().get_ylim()[1],
+           linestyles = "dashed", colors = 'k')
 plt.xlabel("Number of Ultradian Cycles")
 plt.xticks([i for i in range(0, 21, 2)])
 plt.xlim((0, 20))

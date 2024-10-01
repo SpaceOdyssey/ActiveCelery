@@ -80,8 +80,8 @@ plt.savefig("period_amplitude.pdf")
 plt.figure()
 plt.plot(all_periods, all_qualities, ".", alpha=0.2)
 plt.xlabel("Period")
+plt.ylim(0.0, 1000.0)
 plt.ylabel("Quality factor")
-plt.yscale('log')
 plt.savefig("quality_factor.pdf")
 
 # Histogram of number of modes

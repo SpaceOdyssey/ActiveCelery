@@ -72,6 +72,26 @@ double MyModel::log_likelihood() const
     const auto& components = modes.get_components();
     size_t num_modes = components.size();
 
+    // Improve identifiability by not allowing multiple high quality components
+    // to have periods spaced less than 1 hour.
+    std::vector<double> q_amps;
+    for(size_t i=0; i<components.size(); ++i) {
+        if (components[i][2] > 1.0)
+            q_amps.push_back(components[i][1]);
+    }
+    std::sort(q_amps.begin(), q_amps.end());
+
+    if (q_amps.size() > 1) {
+        std::vector<double> q_amps_diff(q_amps.size());
+        for (size_t i=0; i<q_amps_diff.size(); ++i)
+            q_amps_diff[i] = q_amps[i+1] - q_amps[i];
+
+        auto min_el = std::min_element(q_amps_diff.begin(), q_amps_diff.end());
+
+        if (*min_el < 1.0/24.0)
+            return -1E300;
+    }
+
     // Count number of modes with Q < 0.5,
     // as these need *two* Celerite terms.
     size_t lowQ = 0;
@@ -151,26 +171,6 @@ double MyModel::log_likelihood() const
         return -1E300;
     }
 
-    // Improve identifiability by not allowing multiple high quality components
-    // to have periods spaced less than 1 hour.
-    std::vector<double> q_amps;
-    for(size_t i=0; i<components.size(); ++i) {
-        if (components[i][2] > 1.0)
-            q_amps.push_back(components[i][1]);
-    }
-    std::sort(q_amps.begin(), q_amps.end());
-
-    if (q_amps.size() > 1) {
-        std::vector<double> q_amps_diff(q_amps.size());
-        for (size_t i=0; i<q_amps_diff.size(); ++i)
-            q_amps_diff[i] = q_amps[i+1] - q_amps[i];
-
-        auto min_el = std::min_element(q_amps_diff.begin(), q_amps_diff.end());
-
-        if (*min_el < 1.0/24.0)
-            return -1E300;
-    }
-
     // Calculate likelihood.
     logL += -0.5*log(2*M_PI)*data.get_y().size();
     logL += -0.5*solver.log_determinant();
@@ -180,6 +180,8 @@ double MyModel::log_likelihood() const
 }
 
 void MyModel::print(std::ostream& out) const {
+    const Data& data = Data::get_instance();
+
     out << std::setprecision(12);
     modes.print(out);
 
@@ -189,7 +191,11 @@ void MyModel::print(std::ostream& out) const {
     out << quality_circ << " ";
 
     // Noise model
-    out << sigma;
+    out << sigma << " ";
+
+    // y-scale normalisation constants.
+    out << data.get_y_mean() << " ";
+    out << data.get_y_sd() << " ";
 }
 
 std::string MyModel::description() const {
@@ -211,7 +217,11 @@ std::string MyModel::description() const {
     s << "quality[circ], ";
 
     // Noise model
-    s << "sigma";
+    s << "sigma, ";
+
+    // y-scale normalisation constants.
+    s << "y_mean, ";
+    s << "y_sd";
 
     return s.str();
 }

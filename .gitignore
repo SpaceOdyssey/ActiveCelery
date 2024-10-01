@@ -1,9 +1,10 @@
 code/main
 code/__pycache__
 code/*.txt
+code/*.pdf
+code/*.csv
 code/Celery
 code/logfile
-code/*.pdf
 code/posterior_sample.yaml
 Code/Makefile
 doc/*.aux
