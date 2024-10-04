@@ -196,6 +196,90 @@ void MyModel::print(std::ostream& out) const {
     // y-scale normalisation constants.
     out << data.get_y_mean() << " ";
     out << data.get_y_sd() << " ";
+
+    /*
+        Posterior predictions.
+    */
+
+    // Get the RJObject components
+    const auto& components = modes.get_components();
+    size_t num_modes = components.size();
+
+    // Count number of modes with Q < 0.5,
+    // as these need *two* Celerite terms.
+    size_t lowQ = 0;
+    for(size_t i=0; i<components.size(); ++i)
+        if(components[i][2] <= 0.5)
+            ++lowQ;
+
+    // Only need these four
+    Eigen::VectorXd a(1 + num_modes + lowQ);
+    Eigen::VectorXd b(1 + num_modes + lowQ);
+    Eigen::VectorXd c(1 + num_modes + lowQ);
+    Eigen::VectorXd d(1 + num_modes + lowQ);
+
+    double omega0, Q, Qterm, A2;
+
+    // Circadian term.
+    A2 = pow(exp(log_amplitude_circ), 2);
+    omega0 = 2.0*M_PI/period_circ;
+    Q = quality_circ;
+
+    Qterm = sqrt(4*Q*Q - 1.0);
+    a(0) = A2;
+    b(0) = A2/Qterm;
+    c(0) = omega0 / (2*Q);
+    d(0) = c(0) * Qterm;
+
+    // Additional terms.
+    size_t j=1;
+    for(size_t i=0; i<components.size(); ++i) {
+        A2 = pow(components[i][0], 2);
+        omega0 = 2.0*M_PI/components[i][1];
+        Q = components[i][2];
+
+        if(Q >= 0.5) {
+            Qterm = sqrt(4*Q*Q - 1.0);
+            a(j) = A2;
+            b(j) = A2/Qterm;
+            c(j) = omega0 / (2*Q);
+            d(j) = c(j) * Qterm;
+            ++j;
+        } else {
+            Qterm = sqrt(1.0 - 4*Q*Q);
+            a(j)   = 0.5*A2*(1.0 + 1.0/Qterm);
+            a(j+1) = 0.5*A2*(1.0 - 1.0/Qterm);
+            b(j) = 0.0;
+            b(j+1) = 0.0;
+            c(j)   = omega0/(2*Q)*(1.0 - Qterm);
+            c(j+1) = omega0/(2*Q)*(1.0 + Qterm);
+            d(j)   = 0.0;
+            d(j+1) = 0.0;
+            j += 2;
+        }
+    }
+
+    // When the imaginary components of the celerite terms are zero, we get an
+    // Ornstein-Uhlenbeck component. Which is what is being done here to model
+    // longer term correlated noise. Brendon has set alpha_real = 0, which
+    // corresponds to the amplitude of this term, and thus is effectively being
+    // removed. We may want to reintroduce this later.
+    Eigen::VectorXd alpha_real(1), beta_real(1);
+    alpha_real(0) = 0.0;
+    beta_real(0)  = 1.0;
+
+    // Celerite solver.
+    celerite::solver::CholeskySolver<double> solver;
+    Eigen::VectorXd var = Eigen::VectorXd::Constant(data.get_y().size(), sigma*sigma);
+    solver.compute(0.0,
+                    alpha_real, beta_real,
+                    a, b, c, d,
+                    data.get_tt(), var);
+
+    Eigen::VectorXd yy_predict = solver.predict(data.get_yy(), data.get_tt_predict());
+
+    for(size_t i=0; i<data.get_t_predict().size(); ++i)
+        out << yy_predict(i) << " ";
 }
 
 std::string MyModel::description() const {
@@ -221,7 +305,13 @@ std::string MyModel::description() const {
 
     // y-scale normalisation constants.
     s << "y_mean, ";
-    s << "y_sd";
+    s << "y_sd, ";
+
+    // Posterior prediction.
+    std::vector<double> tt_predict = Data::get_instance().get_t_predict();
+    for(size_t i=0; i<tt_predict.size()-1; ++i)
+        s << "y_predict[" << i << "], ";
+    s << "y_predict[" << tt_predict.size() << "]";
 
     return s.str();
 }

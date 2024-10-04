@@ -10,9 +10,9 @@ namespace Celery
 class Data
 {
     private:
-        std::vector<double> t, y;
+        std::vector<double> t, y, t_predict;
         double y_mean, y_sd;
-        Eigen::VectorXd tt, yy;
+        Eigen::VectorXd tt, yy, tt_predict;
 
     public:
         Data();
@@ -21,10 +21,12 @@ class Data
         // Getters
         const std::vector<double>& get_t() const { return t; }
         const std::vector<double>& get_y() const { return y; }
+        const std::vector<double>& get_t_predict() const { return t_predict; }
 
         // Getters of eigen vectors
         const Eigen::VectorXd& get_tt() const { return tt; }
         const Eigen::VectorXd& get_yy() const { return yy; }
+        const Eigen::VectorXd& get_tt_predict() const { return tt_predict; }
 
         // Getters for y-scale normalisation
         double get_y_mean() const { return y_mean; }

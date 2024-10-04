@@ -10,8 +10,11 @@ import statistics
 print("Generating DNest4 plots. Close these to continue.")
 
 # Inputs
-inputs = pd.read_csv("inputs.csv", index_col=0, header=None).T
-component_inputs = pd.read_csv("component_inputs.csv", index_col=0, header=None).T
+inputs = pd.read_csv("./inputs.csv", index_col=0, header=None).T
+component_inputs = pd.read_csv("./component_inputs.csv", index_col=0, header=None).T
+
+# inputs = pd.read_csv("../inputs.csv", index_col=0, header=None).T
+# component_inputs = pd.read_csv("../component_inputs.csv", index_col=0, header=None).T
 
 # Run postprocess from DNest4
 dn4.postprocess()
@@ -141,3 +144,16 @@ plt.savefig("num_quality_components.pdf")
 # Summary statistics.
 with open('summary_stats.txt', 'w') as f:
     f.write(f'num_quality_components_map: %s' % statistics.mode(n_quality_components))
+
+# Plot posterior predictive distribution.
+t_predict = pd.read_csv('t_predict.txt', header = None, names = ['t'])
+data = pd.read_csv('data.txt', header = None, sep = ' ', names = ['t', 'y'])
+y_mean =  posterior_sample[1, indices["y_mean"]]
+
+start = indices["y_predict[0]"]
+end = indices["y_predict[%i]" % len(t_predict)]
+
+plt.figure(figsize = (30, 10))
+plt.plot(t_predict['t'], y_sd*posterior_sample[:, start:].T + y_mean, color = 'k', alpha = 0.1)
+plt.scatter(data['t'], data['y'], color = 'r')
+plt.savefig('posterior_predict.pdf')

@@ -65,6 +65,27 @@ void Data::load(const char* filename)
         tt(i) = t[i];
         yy(i) = y[i];
     }
+
+    // Posterior prediction locations.
+    double dt = 1.0/(6.0*24.0);  // Assuming 10 minute bins.
+    size_t n_t = std::ceil((t.back() - t[0])/dt);
+    for (size_t i = 0; i<=n_t; ++i) {
+        t_predict.push_back(t[0] + i*dt);
+    }
+
+    // Copy into eigen vectors
+    tt_predict.resize(t_predict.size());
+    for(size_t i=0; i<t_predict.size(); ++i) {
+        tt_predict(i) = t_predict[i];
+    }
+
+    // Write predictive t to file:
+    std::ofstream outFile("t_predict.txt");
+    for(size_t i=0; i<t_predict.size(); ++i) {
+        outFile << t_predict[i] << std::endl;
+    }
+    outFile.close();
+
 }
 
 } // namespace Celery
