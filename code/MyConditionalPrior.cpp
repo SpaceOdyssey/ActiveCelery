@@ -10,9 +10,9 @@ namespace Celery
 MyConditionalPrior::MyConditionalPrior()
 {
     // Component priors.
-    prior_log_amplitude = DNest4::Gaussian(0.0, 2.5);
+    prior_amplitude = DNest4::TruncatedCauchy(0.0, 1.0, 1E-6);
     prior_period = DNest4::Uniform(1.0/24.0, 1.0 - 1.0/24.0);
-    prior_quality = DNest4::TruncatedCauchy(0.0, 100, 1E-6);
+    prior_quality = DNest4::TruncatedCauchy(0.0, 100.0, 1E-6);
 }
 
 void MyConditionalPrior::from_prior(DNest4::RNG& rng)
@@ -39,7 +39,7 @@ double MyConditionalPrior::log_pdf(const std::vector<double>& vec) const
     if(vec[2] < 0.0)
         return -1E300;
 
-    logP += prior_log_amplitude.log_pdf(log(vec[0]));
+    logP += prior_amplitude.log_pdf(vec[0]);
     logP += prior_period.log_pdf(vec[1]);
     logP += prior_quality.log_pdf(vec[2]);
 
@@ -48,14 +48,14 @@ double MyConditionalPrior::log_pdf(const std::vector<double>& vec) const
 
 void MyConditionalPrior::from_uniform(std::vector<double>& vec) const
 {
-    vec[0] = exp(prior_log_amplitude.cdf_inverse(vec[0]));
+    vec[0] = prior_amplitude.cdf_inverse(vec[0]);
     vec[1] = prior_period.cdf_inverse(vec[1]);
     vec[2] = prior_quality.cdf_inverse(vec[2]);
 }
 
 void MyConditionalPrior::to_uniform(std::vector<double>& vec) const
 {
-    vec[0] = prior_log_amplitude.cdf(log(vec[0]));
+    vec[0] = prior_amplitude.cdf(vec[0]);
     vec[1] = prior_period.cdf(vec[1]);
     vec[2] = prior_quality.cdf(vec[2]);
 }

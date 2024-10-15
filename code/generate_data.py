@@ -1,4 +1,5 @@
 # from pylab import *
+import random
 from matplotlib import pyplot as plt
 import itertools
 import numpy as np
@@ -6,6 +7,7 @@ from pathlib import Path
 import os
 import uuid
 from scipy.signal import welch
+from scipy.linalg import cholesky, inv
 
 # This script creates simulated data.
 
@@ -14,15 +16,16 @@ def periodogram(t, y, fs, noise):
     """
     Compute the periodogram.
     """
-    pgram = empty(len(fs))
+    pgram = np.empty(len(fs))
     for i in range(len(fs)):
-        sine   = np.sin(2*pi*fs[i]*t)
-        cosine = np.cos(2*pi*fs[i]*t)
+        sine   = np.sin(2*np.pi*fs[i]*t)
+        cosine = np.cos(2*np.pi*fs[i]*t)
         pgram[i] = sum(sine*y/noise)**2 + sum(cosine*y/noise)**2
     return pgram/len(fs)
 
 # Data.
 root = Path(os.environ.get("ACTIGRAPHY_PATH"))
+print()
 
 # Constant Inputs
 n_days = 14
@@ -33,17 +36,17 @@ amps = [1.0, 1.0]
 qualities = [25.0, 25.0]
 
 # Verying Inputs.
-noise_opt = np.logspace(-2, 2, 5)
+noise_var_opt = np.logspace(-1, 1, 5)
 s_opt = np.random.randint(0, 2**32 - 1, size = 5)
 
-for noise, s in itertools.product(noise_opt, s_opt):
+for noise_var, s in itertools.product(noise_var_opt, s_opt):
     run_id = str(uuid.uuid4())
     run_path = root.joinpath("Simulated", run_id)
     run_path.mkdir()
 
     # Save inputs.
     with open(run_path.joinpath("inputs.csv"), "w") as f:
-        f.write("noise,%s\n" % noise)
+        f.write("noise_var,%s\n" % noise_var)
         f.write("n_days,%s\n" % n_days)
         f.write("n_obs,%s\n" % n_obs)
         f.write("seed,%s\n" % s)
@@ -53,31 +56,33 @@ for noise, s in itertools.product(noise_opt, s_opt):
         f.write(f"period,{','.join(map(str, periods))}\n")
         f.write(f"quality,{','.join(map(str, qualities))}\n")
 
-    seed(s)
-    t = sort(n_days*rand(n_obs))
+    random.seed(s)
+    t = np.sort(n_days*np.random.rand(n_obs))
 
     [t1, t2] = np.meshgrid(t, t)
     dt = t1 - t2
 
-    y = zeros(t.size)
+    y = np.zeros(t.size)
 
     # Amplitude, period, quality
     for i in range(len(freqs)):
         A, P, Q = amps[i], 1.0/freqs[i], qualities[i]
-        w0 = 2*pi/P
+        w0 = 2*np.pi/P
         tau = abs(dt)
-        eta = sqrt(1.0 - 1.0/(4.0*Q**2))
-        C = A**2*exp(-w0*tau/(2*Q))*(cos(eta*w0*tau) + sin(eta*w0*tau)/(2.0*eta*Q))
+        eta = np.sqrt(1.0 - 1.0/(4.0*Q**2))
+        C = A**2*np.exp(-w0*tau/(2*Q))*(np.cos(eta*w0*tau) + np.sin(eta*w0*tau)/(2.0*eta*Q))
 
-        n = matrix(np.random.randn(len(t))).T
+        n = np.matrix(np.random.randn(len(t))).T
         L = cholesky(C)
 
         yy = (L*n).T
         y += np.array(yy).flatten()
 
+
+    noise = np.sqrt(noise_var)
     data = np.empty((len(t), 2))
     data[:,0], data[:,1] = t, y
-    yerr = noise*np.random.randn(data.shape[0])
+    yerr = np.sqrt(noise)*np.random.randn(data.shape[0])
     abs_yerr = abs(yerr)
     data[:,1] += yerr  # Adding noise.
     np.savetxt(run_path.joinpath('data.txt'), data)
@@ -95,7 +100,7 @@ for noise, s in itertools.product(noise_opt, s_opt):
     plt.savefig(run_path.joinpath("data.pdf"))
 
     # Theoretical periodogram.
-    fs = linspace(0.001, 24.0, 10001)
+    fs = np.linspace(0.001, 24.0, 10001)
     pgram = periodogram(t, y, fs, noise)
     plt.figure()
     plt.plot(fs, pgram)
@@ -115,9 +120,9 @@ for noise, s in itertools.product(noise_opt, s_opt):
     plt.savefig(run_path.joinpath("empirical_periodogram.pdf"))
 
     # Log likelihood
-    y = matrix(data[:,1]).T
+    y = np.matrix(data[:,1]).T
     for i in range(0, len(t)):
         C[i, i] += 0.9**2
     L = cholesky(C)
-    logl = -0.5*len(t)*log(2*pi) - 0.5*2*sum(log(diag(L))) - 0.5*y.T*inv(C)*y
+    logl = -0.5*len(t)*np.log(2*np.pi) - 0.5*2*sum(np.log(np.diag(L))) - 0.5*y.T*inv(C)*y
     print(logl)

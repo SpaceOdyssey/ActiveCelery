@@ -10,6 +10,10 @@ import statistics
 
 import glob
 
+# Get data
+t_predict = pd.read_csv('./t_predict.txt', header = None, names = ['t'])
+data = pd.read_csv('./data.txt', header = None, sep = ' ', names = ['t', 'y'])
+
 # Make combined posterior samples file.
 max_num_components = 20
 column_names = ['num_dimensions', 'max_num_components', 'num_components'] + \
@@ -17,7 +21,8 @@ column_names = ['num_dimensions', 'max_num_components', 'num_components'] + \
                 [f'period[{i}]' for i in range(max_num_components)] + \
                 [f'quality[{i}]' for i in range(max_num_components)] + \
                 ['amplitude[circ]', 'period[circ]', 'quality[circ]', 'sigma',
-                 'y_mean', 'y_sd']
+                 'y_mean', 'y_sd'] + \
+                 [f'y_predict[{i}]' for i in range(t_predict.shape[0])]
 
 files = glob.glob('run*/posterior_sample.txt')
 
@@ -58,13 +63,22 @@ all_qualities = all_qualities[all_qualities != 0.0]
 start = indices["amplitude[circ]"]
 all_circ = posterior_sample.iloc[:, start:-1]
 
-# Plot circadian component.
-circ_keys = ["amplitude[circ]", "period[circ]", "quality[circ]"]
-all_circ_df = pd.DataFrame(all_circ, columns = circ_keys)
+# Plot circadian components as a pairs plot.
+circ_keys = ["amplitude[circ]", "period[circ]", "quality[circ]", "chain"]
+all_circ_df = posterior_sample[circ_keys]
 all_circ_df = all_circ_df[all_circ_df["quality[circ]"] <= 100.0]
 all_circ_df["amplitude[circ]"] = np.log10(all_circ_df["amplitude[circ]"])
-sns.pairplot(all_circ_df)
+sns.pairplot(all_circ_df, hue = "chain")
 plt.savefig('circadian_params.pdf')
+
+# Plot the non-component parameters as a pairs plot.
+const_keys = ["amplitude[circ]", "period[circ]", "quality[circ]",
+              "sigma", "num_components", "chain"]
+const_df = posterior_sample[const_keys]
+const_df = const_df[const_df["quality[circ]"] <= 100.0]
+const_df["amplitude[circ]"] = np.log10(const_df["amplitude[circ]"])
+sns.pairplot(const_df, hue = 'chain')
+plt.savefig('const_params.pdf')
 
 # Histogram of inferred log-periods
 plt.figure()
@@ -101,9 +115,14 @@ plt.ylabel("Quality factor")
 plt.yscale('log')
 plt.savefig("quality_factor.pdf")
 
+# Plot the white noise component.
+plt.figure()
+plt.hist(posterior_sample.iloc[:, indices["sigma"]])
+plt.savefig('white_noise.pdf')
+
 # Create normalised histogram of number of components for each chain.
-chains = posterior_sample['chain'].unique()
-colors = ['blue', 'orange']  # Define a color for each source
+chains = posterior_sample.iloc[:, indices["chain"]].unique()
+colors = ['blue', 'orange']
 bins = np.arange(0, posterior_sample.iloc[0, indices["max_num_components"]]+1) - 0.5
 plt.figure()
 for chain, color in zip(chains, colors):
@@ -179,6 +198,18 @@ plt.ylabel('Probability')
 plt.legend(title = 'Chains')
 plt.savefig("num_quality_components_per_chain.pdf")
 
+# Plot posterior predictive distribution.
+y_mean = posterior_sample["y_mean"].values[1]
+
+start = indices["y_predict[0]"]
+
+plt.figure(figsize = (30, 10))
+plt.plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:-1].T + y_mean, color = 'k', alpha = 0.1)
+plt.scatter(data['t'], data['y'], color = 'r')
+plt.savefig('posterior_predict.pdf')
+
 # Summary statistics.
 with open('summary_stats.txt', 'w') as f:
-    f.write(f'num_quality_components_map: %s' % np.argmax(counts))
+    f.write(f'num_quality_components_map %s\n' % np.argmax(counts))
+    f.write(f'circ_amplitude_mean %s\n' % np.mean(posterior_sample.iloc[:, indices["amplitude[circ]"]]))
+    f.write(f'sigma_mean %s\n' % np.mean(posterior_sample.iloc[:, indices["sigma"]]))
