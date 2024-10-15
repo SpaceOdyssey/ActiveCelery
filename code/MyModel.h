@@ -32,6 +32,12 @@ class MyModel
         double sigma;
         DNest4::TruncatedCauchy prior_sigma;
 
+        // Predictive models.
+        Eigen::VectorXd predictive_mean() const;
+        Eigen::VectorXd predictive_ultradian_mean() const;
+        Eigen::VectorXd predictive_circadian_mean() const;
+        Eigen::VectorXd predictive_corr_noise_mean() const;
+
     public:
         // Constructor only gives size of params
         MyModel();
@@ -50,6 +56,9 @@ class MyModel
 
         // Return string with column information
         std::string description() const;
+
+
+
 };
 
 } // namespace Celery

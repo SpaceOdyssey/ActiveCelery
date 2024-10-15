@@ -10,8 +10,8 @@ import statistics
 print("Generating DNest4 plots. Close these to continue.")
 
 # Inputs
-inputs = pd.read_csv("./inputs.csv", index_col=0, header=None).T
-component_inputs = pd.read_csv("./component_inputs.csv", index_col=0, header=None).T
+inputs = pd.read_csv("../inputs.csv", index_col=0, header=None).T
+component_inputs = pd.read_csv("../component_inputs.csv", index_col=0, header=None).T
 
 # inputs = pd.read_csv("../inputs.csv", index_col=0, header=None).T
 # component_inputs = pd.read_csv("../component_inputs.csv", index_col=0, header=None).T
@@ -146,8 +146,8 @@ with open('summary_stats.txt', 'w') as f:
     f.write(f'num_quality_components_map: %s' % statistics.mode(n_quality_components))
 
 # Plot posterior predictive distribution.
-t_predict = pd.read_csv('t_predict.txt', header = None, names = ['t'])
-data = pd.read_csv('data.txt', header = None, sep = ' ', names = ['t', 'y'])
+t_predict = pd.read_csv('../t_predict.txt', header = None, names = ['t'])
+data = pd.read_csv('../data.txt', header = None, sep = ' ', names = ['t', 'y'])
 y_mean =  posterior_sample[1, indices["y_mean"]]
 
 start = indices["y_predict[0]"]
