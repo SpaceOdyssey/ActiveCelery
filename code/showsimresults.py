@@ -13,9 +13,6 @@ print("Generating DNest4 plots. Close these to continue.")
 inputs = pd.read_csv("../inputs.csv", index_col=0, header=None).T
 component_inputs = pd.read_csv("../component_inputs.csv", index_col=0, header=None).T
 
-# inputs = pd.read_csv("../inputs.csv", index_col=0, header=None).T
-# component_inputs = pd.read_csv("../component_inputs.csv", index_col=0, header=None).T
-
 # Run postprocess from DNest4
 dn4.postprocess()
 
@@ -146,14 +143,41 @@ with open('summary_stats.txt', 'w') as f:
     f.write(f'num_quality_components_map: %s' % statistics.mode(n_quality_components))
 
 # Plot posterior predictive distribution.
-t_predict = pd.read_csv('../t_predict.txt', header = None, names = ['t'])
-data = pd.read_csv('../data.txt', header = None, sep = ' ', names = ['t', 'y'])
+t_predict = pd.read_csv('../t_predict.txt', header=None, names=['t'])
+data = pd.read_csv('../data.txt', header=None, sep=' ', names=['t', 'y'])
 y_mean =  posterior_sample[1, indices["y_mean"]]
 
-start = indices["y_predict[0]"]
-end = indices["y_predict[%i]" % len(t_predict)]
+fig, ax = plt.subplots(4, 1, figsize = (30, 10), sharex = True, sharey = True)
 
-plt.figure(figsize = (30, 10))
-plt.plot(t_predict['t'], y_sd*posterior_sample[:, start:].T + y_mean, color = 'k', alpha = 0.1)
-plt.scatter(data['t'], data['y'], color = 'r')
-plt.savefig('posterior_predict.pdf')
+start = indices["y_mean[0]"]
+end = indices["y_circadian[0]"]
+ax[0].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[0].scatter(data['t'], data['y'], color = 'r')
+an_xy = (0.9*np.max(data['t']), 0.8*np.max(data['y']))
+ax[0].annotate('Total model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior circadian component.
+start = indices["y_circadian[0]"]
+end = indices["y_ultradian[0]"]
+ax[1].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[1].scatter(data['t'], data['y'], color = 'r')
+ax[1].annotate('Circadian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_ultradian[0]"]
+end = indices["y_corr_noise[0]"]
+ax[2].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color = 'k', alpha=0.1)
+ax[2].scatter(data['t'], data['y'], color = 'r')
+ax[2].annotate('Ultradian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_corr_noise[0]"]
+ax[3].plot(t_predict['t'], y_sd*posterior_sample[:, start:].T + y_mean, color='k', alpha=0.1)
+ax[3].scatter(data['t'], data['y'], color = 'r')
+ax[3].set_xlabel('Days since baseline', fontsize=16.0)
+ax[3].annotate('Trend model', xy=an_xy, fontsize=12.0)
+
+plt.subplots_adjust(hspace = 0)
+plt.tight_layout()
+
+plt.savefig('predict.pdf')

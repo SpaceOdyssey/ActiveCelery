@@ -323,19 +323,19 @@ std::string MyModel::description() const {
     s << "y_sd, ";
 
     // Posterior predictive models.
-    std::vector<double> tt_predict = Data::get_instance().get_t_predict();
-    for(size_t i=0; i<tt_predict.size(); ++i)
-        s << "y_mean[" << i << "], ";
+    std::vector<double> t_predict = Data::get_instance().get_t_predict();
+    for(size_t i=0; i<t_predict.size(); ++i)
+        s << "y_predict[" << i << "], ";
 
-    for(size_t i=0; i<tt_predict.size(); ++i)
+    for(size_t i=0; i<t_predict.size(); ++i)
         s << "y_circadian[" << i << "], ";
 
-    for(size_t i=0; i<tt_predict.size(); ++i)
+    for(size_t i=0; i<t_predict.size(); ++i)
         s << "y_ultradian[" << i << "], ";
 
-    for(size_t i=0; i<tt_predict.size()-1; ++i)
-        s << "y_corr_noise[" << i << "], ";
-    s << "y_corr_noise[" << tt_predict.size() << "]";
+    for(size_t i=0; i<t_predict.size()-1; ++i)
+        s << "y_trend[" << i << "], ";
+    s << "y_trend[" << t_predict.size() << "]";
 
     return s.str();
 }
