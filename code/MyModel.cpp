@@ -335,7 +335,7 @@ std::string MyModel::description() const {
 
     for(size_t i=0; i<t_predict.size()-1; ++i)
         s << "y_trend[" << i << "], ";
-    s << "y_trend[" << t_predict.size() << "]";
+    s << "y_trend[" << t_predict.size()-1 << "]";
 
     return s.str();
 }

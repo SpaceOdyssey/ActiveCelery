@@ -17,12 +17,14 @@ data = pd.read_csv('./data.txt', header = None, sep = ' ', names = ['t', 'y'])
 # Make combined posterior samples file.
 max_num_components = 20
 column_names = ['num_dimensions', 'max_num_components', 'num_components'] + \
-                [f'amplitude[{i}]' for i in range(max_num_components)] + \
-                [f'period[{i}]' for i in range(max_num_components)] + \
-                [f'quality[{i}]' for i in range(max_num_components)] + \
-                ['amplitude[circ]', 'period[circ]', 'quality[circ]', 'sigma',
-                 'y_mean', 'y_sd'] + \
-                 [f'y_predict[{i}]' for i in range(t_predict.shape[0])]
+     [f'amplitude[{i}]' for i in range(max_num_components)] + \
+     [f'period[{i}]' for i in range(max_num_components)] + \
+     [f'quality[{i}]' for i in range(max_num_components)] + \
+     ['amplitude[circ]', 'period[circ]', 'quality[circ]', 'sigma', 'y_mean', 'y_sd'] + \
+     [f'y_predict[{i}]' for i in range(t_predict.shape[0])] + \
+     [f'y_circadian[{i}]' for i in range(t_predict.shape[0])] + \
+     [f'y_ultradian[{i}]' for i in range(t_predict.shape[0])] + \
+     [f'y_trend[{i}]' for i in range(t_predict.shape[0])]
 
 files = glob.glob('run*/posterior_sample.txt')
 
@@ -201,12 +203,40 @@ plt.savefig("num_quality_components_per_chain.pdf")
 # Plot posterior predictive distribution.
 y_mean = posterior_sample["y_mean"].values[1]
 
-start = indices["y_predict[0]"]
+fig, ax = plt.subplots(4, 1, figsize = (30, 10), sharex = True, sharey = True)
 
-plt.figure(figsize = (30, 10))
-plt.plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:-1].T + y_mean, color = 'k', alpha = 0.1)
-plt.scatter(data['t'], data['y'], color = 'r')
-plt.savefig('posterior_predict.pdf')
+start = indices["y_predict[0]"]
+end = indices["y_circadian[0]"]
+ax[0].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[0].scatter(data['t'], data['y'], color = 'r')
+an_xy = (0.9*np.max(data['t']), 0.8*np.max(data['y']))
+ax[0].annotate('Total model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior circadian component.
+start = indices["y_circadian[0]"]
+end = indices["y_ultradian[0]"]
+ax[1].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[1].scatter(data['t'], data['y'], color = 'r')
+ax[1].annotate('Circadian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_ultradian[0]"]
+end = indices["y_corr_noise[0]"]
+ax[2].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color = 'k', alpha=0.1)
+ax[2].scatter(data['t'], data['y'], color = 'r')
+ax[2].annotate('Ultradian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_corr_noise[0]"]
+ax[3].plot(t_predict['t'], y_sd*posterior_sample[:, start:].T + y_mean, color='k', alpha=0.1)
+ax[3].scatter(data['t'], data['y'], color = 'r')
+ax[3].set_xlabel('Days since baseline', fontsize=16.0)
+ax[3].annotate('Trend model', xy=an_xy, fontsize=12.0)
+
+plt.subplots_adjust(hspace = 0)
+plt.tight_layout()
+
+plt.savefig('predict.pdf')
 
 # Summary statistics.
 with open('summary_stats.txt', 'w') as f:

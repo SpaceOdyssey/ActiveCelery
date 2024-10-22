@@ -149,7 +149,7 @@ y_mean =  posterior_sample[1, indices["y_mean"]]
 
 fig, ax = plt.subplots(4, 1, figsize = (30, 10), sharex = True, sharey = True)
 
-start = indices["y_mean[0]"]
+start = indices["y_predict[0]"]
 end = indices["y_circadian[0]"]
 ax[0].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
 ax[0].scatter(data['t'], data['y'], color = 'r')
