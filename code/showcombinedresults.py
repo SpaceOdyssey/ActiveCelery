@@ -207,7 +207,7 @@ fig, ax = plt.subplots(4, 1, figsize = (30, 10), sharex = True, sharey = True)
 
 start = indices["y_predict[0]"]
 end = indices["y_circadian[0]"]
-ax[0].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[0].plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:end].T + y_mean, color='k', alpha=0.1)
 ax[0].scatter(data['t'], data['y'], color = 'r')
 an_xy = (0.9*np.max(data['t']), 0.8*np.max(data['y']))
 ax[0].annotate('Total model', xy=an_xy, fontsize=12.0)
@@ -215,21 +215,61 @@ ax[0].annotate('Total model', xy=an_xy, fontsize=12.0)
 # Plot posterior circadian component.
 start = indices["y_circadian[0]"]
 end = indices["y_ultradian[0]"]
-ax[1].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color='k', alpha=0.1)
+ax[1].plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:end].T + y_mean, color='k', alpha=0.1)
 ax[1].scatter(data['t'], data['y'], color = 'r')
 ax[1].annotate('Circadian model', xy=an_xy, fontsize=12.0)
 
 # Plot posterior ultradian components.
 start = indices["y_ultradian[0]"]
-end = indices["y_corr_noise[0]"]
-ax[2].plot(t_predict['t'], y_sd*posterior_sample[:, start:end].T + y_mean, color = 'k', alpha=0.1)
+end = indices["y_trend[0]"]
+ax[2].plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:end].T + y_mean, color = 'k', alpha=0.1)
 ax[2].scatter(data['t'], data['y'], color = 'r')
 ax[2].annotate('Ultradian model', xy=an_xy, fontsize=12.0)
 
 # Plot posterior ultradian components.
-start = indices["y_corr_noise[0]"]
-ax[3].plot(t_predict['t'], y_sd*posterior_sample[:, start:].T + y_mean, color='k', alpha=0.1)
+start = indices["y_trend[0]"]
+end = indices["chain"]
+ax[3].plot(t_predict['t'], y_sd*posterior_sample.iloc[:, start:end].T + y_mean, color='k', alpha=0.1)
 ax[3].scatter(data['t'], data['y'], color = 'r')
+ax[3].set_xlabel('Days since baseline', fontsize=16.0)
+ax[3].annotate('Trend model', xy=an_xy, fontsize=12.0)
+
+plt.subplots_adjust(hspace = 0)
+plt.tight_layout()
+
+plt.savefig('log_predict.pdf')
+
+# Plot posterior predictive in linear space.
+y_mean = posterior_sample["y_mean"].values[1]
+
+fig, ax = plt.subplots(4, 1, figsize = (30, 10), sharex = True, sharey = True)
+
+start = indices["y_predict[0]"]
+end = indices["y_circadian[0]"]
+ax[0].plot(t_predict['t'], np.exp(y_sd*posterior_sample.iloc[:, start:end].T + y_mean), color='k', alpha=0.1)
+ax[0].scatter(data['t'], np.exp(data['y']), color = 'r')
+an_xy = (0.9*np.max(data['t']), 0.8*np.max(data['y']))
+ax[0].annotate('Total model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior circadian component.
+start = indices["y_circadian[0]"]
+end = indices["y_ultradian[0]"]
+ax[1].plot(t_predict['t'], np.exp(y_sd*posterior_sample.iloc[:, start:end].T + y_mean), color='k', alpha=0.1)
+ax[1].scatter(data['t'], data['y'], color = 'r')
+ax[1].annotate('Circadian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_ultradian[0]"]
+end = indices["y_trend[0]"]
+ax[2].plot(t_predict['t'], np.exp(y_sd*posterior_sample.iloc[:, start:end].T + y_mean), color = 'k', alpha=0.1)
+ax[2].scatter(data['t'], np.exp(data['y']), color = 'r')
+ax[2].annotate('Ultradian model', xy=an_xy, fontsize=12.0)
+
+# Plot posterior ultradian components.
+start = indices["y_trend[0]"]
+end = indices["chain"]
+ax[3].plot(t_predict['t'], np.exp(y_sd*posterior_sample.iloc[:, start:end].T + y_mean), color='k', alpha=0.1)
+ax[3].scatter(data['t'], np.exp(data['y']), color = 'r')
 ax[3].set_xlabel('Days since baseline', fontsize=16.0)
 ax[3].annotate('Trend model', xy=an_xy, fontsize=12.0)
 

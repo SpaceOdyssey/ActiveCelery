@@ -6,5 +6,5 @@ CELERITE_INCLUDE_PATH = ../celerite/cpp/include/
 default:
 	make noexamples -C ../DNest4/code
 	$(CC) -I .. -I$(CELERITE_INCLUDE_PATH) $(CXXFLAGS) -c *.cpp
-	$(CC) -pthread -L ../DNest4/code -o Celery *.o $(LIBS)
+	$(CC) -pthread -L ../DNest4/code -o ActiveCelery *.o $(LIBS)
 	rm *.o
